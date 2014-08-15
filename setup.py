@@ -23,9 +23,9 @@ setup(
     url='https://github.com/richardasaurus/pi-cctv',
     zip_safe=True,
     install_requires=[
-        'picamera',
-        'Pillow',
-        'docopt',
-        'pytest',
+        'picamera>=1.7',
+        'Pillow>=2.5.2',
+        'docopt>=0.6.2',
+        'pytest>=2.6.1',
     ]
 )
