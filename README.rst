@@ -18,10 +18,8 @@ When ran it will continually take image captures with the camera module (placing
 
 ### Installation
 
-    git clone https://github.com/richardasaurus/pi-cctv.git
-    cd ./pi-cctv
-    pip install -r requirements.txt
+    pip install picctv
 
 ### Example Usage
 
-    python capture.py
+    picctv -o /media/ext1/

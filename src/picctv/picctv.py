@@ -1,22 +1,41 @@
 #!/usr/bin/env python
+"""picctv RaspberryPi CCTV Camera
+
+Usage:
+  picctv -o OUTPUT_DIR
+  picctv --doctest
+  picctv --version
+
+Options:
+  -h --help            show this help message and exit
+  -o --output OUTPUT_DIR  specify output dir to save photographs
+  --doctest            run doctest on this script
+"""
 import os
 import time
 from datetime import datetime
 
+import docopt
+
 from PIL import Image, ImageStat
 
 import picamera
+from picctv.utils import get_logger
 
 os.environ['TZ'] = 'Europe/London'
 time.tzset()
 
-OUTPUT_IMAGES_DIR = '/media/ext1/'
-if not os.path.exists(OUTPUT_IMAGES_DIR):
-    os.makedirs(OUTPUT_IMAGES_DIR)
+logger = get_logger(__name__)
 
 
 def get_image_brightness(image_path):
+    """
+    Get the average brightness value of an Image
+    :returns: Int, Image average brightness value
+    """
+    # Convert the Image to greyscale
     img = Image.open(image_path).convert('L')
+    # Get the average pixel brightness
     stat = ImageStat.Stat(img)
     return stat.rms[0]
 
@@ -53,34 +72,36 @@ def generate_image_filename():
 
 class Capture(object):
 
-    def __init__(self, camera):
+    def __init__(self, camera, output_dir):
         self.camera = camera
+        self.output_dir = output_dir
 
     def take_photo(self, output_file_path):
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+
         self.camera.capture(output_file_path)
-        print('Captured photo {0}'.format(output_file_path))
+        logger.info('Captured photo %s' % output_file_path)
 
     def capture_photo(self, count):
         """
         Capture photo of the cameras view if the room is well lit
         """
         output_file_name = generate_image_filename()
-        save_file_path = os.path.join(OUTPUT_IMAGES_DIR, output_file_name)
+        save_file_path = os.path.join(self.output_dir, output_file_name)
 
         self.take_photo(save_file_path)
         check_image_useful(save_file_path)
 
-if __name__ == '__main__':
+
+def main():
+    arguments = docopt(__doc__)
     camera = picamera.PiCamera()
+    output_dir = arguments.get('--output')
     loop_count = 0
 
     while True:
-        try:
-            c = Capture(camera=camera)
-            c.capture_photo(loop_count)
-        except:
-            print('Exception raised, re-running...')
-            c = Capture(camera=camera)
-            c.capture_photo(loop_count)
+        c = Capture(camera=camera, output_dir=output_dir)
+        c.capture_photo(loop_count)
 
         loop_count += 1
